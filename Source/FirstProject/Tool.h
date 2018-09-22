@@ -16,7 +16,6 @@
 #include "Runtime/Engine/Classes/Materials/Material.h"
 #include "Runtime/Engine/Classes/Engine/ObjectLibrary.h"
 #include "Runtime/Engine/Classes/Components/SkyLightComponent.h"
-#include <Eigen>
 
 #include "GameFramework/Actor.h"
 #include "Tool.generated.h"
@@ -199,8 +198,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Saving/Reading", meta = (AllowPrivateAccess = "true"))
 		int index;
 	
-	// Projection
-	Eigen::Matrix3f K;
-	Eigen::VectorXf D;
+	// bool to determine if the generation of images is ongoing or not
+	bool isGenerating = false;
+	// number of images to generate
+	int nbImagesToGenerate = 0;
+	// number of images generated so far
+	int nbImagesGenerated = 0;
+	// parameters while generating
+	bool randomizeLightningGenerting;
+	bool randomizeBackgroundGenerting;
+	float intensityGenerting;
+	bool randomizeArmLengthGenerting;
+	bool randomTranslateGenerting;
 };
 

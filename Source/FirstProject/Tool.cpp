@@ -150,6 +150,9 @@ void ATool::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (isGenerating) {
+		GenerateRandomRotationsData(nbImagesToGenerate, randomizeLightningGenerting, randomizeBackgroundGenerting, intensityGenerting, randomizeArmLengthGenerting, randomTranslateGenerting);
+	}
 }
 
 /*---------------------------------------------------------  Rotate camera  ----------------------------------------------------------*/
@@ -220,12 +223,12 @@ void ATool::RandomRotateCamera(bool randomizeLightning, bool randomizeBackground
 		EnlightCameraAxis(intensity);
 	}
 	if (randomTranslate) {
-		/*For some reason this part doesn't work as expected, this need to be fixed in order to produce some Yolo database*/
-		float xOffset = FMath::FRandRange(-200, 200);
-		float yOffset = FMath::FRandRange(-300, 300);
+		SpringArm2->SocketOffset = FVector(0, 0, 0);
+		float xOffset = FMath::FRandRange(-400, 400);
+		float yOffset = FMath::FRandRange(-200, 200);
 		float zOffset = FMath::FRandRange(-200, SpringArm2->TargetArmLength);
-		SpringArm->SetRelativeLocation(FVector(xOffset, yOffset, zOffset));
-		GetWorld()->UpdateActorComponentEndOfFrameUpdateState(SpringArm);
+		//SpringArm->SocketOffset = FVector(xOffset, yOffset, 0);
+		SpringArm2->SocketOffset = FVector(0, xOffset, yOffset);
 	}
 }
 
@@ -660,16 +663,32 @@ bool ATool::ReadTranslation(FString FilePath, FVector *TranslationVector)
 
 void ATool::GenerateRandomRotationsData(int nbRot, bool randomizeLightning, bool randomizeBackground, float intensity, bool randomizeArmLength, bool randomTranslate)
 {
-	if (!isInRotationMode) {
-		ToogleRotationMode();
-		UE_LOG(LogTemp, Warning, TEXT("Activate the rotation mode before using the random rotation generation"));
+	if (!isGenerating) {
+		if (!isInRotationMode) {
+			ToogleRotationMode();
+		}
+		nbImagesToGenerate = nbRot;
+		nbImagesGenerated = 0;
+		isGenerating = true;
+
+		randomizeLightningGenerting = randomizeLightning;
+		randomizeBackgroundGenerting = randomizeBackground;
+		intensityGenerting = intensity;
+		randomizeArmLengthGenerting = randomizeArmLength;
+		randomTranslateGenerting = randomTranslate;
 	}
 	else {
-		for (int i = 0; i < nbRot; i++) {
+		if (nbImagesToGenerate > nbImagesGenerated) {
 			RandomRotateCamera(randomizeLightning, randomizeBackground, intensity, randomizeArmLength, randomTranslate);
 			SaveImage();
+			nbImagesGenerated += 1;
 		}
-	}	
+		else {
+			nbImagesGenerated = 0;
+			nbImagesToGenerate = 0;
+			isGenerating = false;
+		}
+	}
 }
 
 void ATool::GenerateNonRandomRotationsData(float degreeStep, bool randomizeLightning, bool randomizeBackground, float intensity)
@@ -717,9 +736,7 @@ void ATool::GenerateNonRandomRotationsData(float degreeStep, bool randomizeLight
 void ATool::ProjectObject()
 {
 	// Define K
-	K << 9.5971160723108721e+02, 0, 9.6055043729890588e+02,
-		0, 9.6132797478587622e+02, 5.4029398159070877e+02,
-		0, 0, 1;
+	
 
 }
 
